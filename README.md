@@ -43,3 +43,35 @@ pyserial library for serial communication
 # Installation
 
 1. Clone the Repository
+2. Install Dependencies
+3. Upload Arduino Code
+   Open arduino_code.ino in Arduino IDE
+
+   Select the correct board and port
+
+   Upload the code to the Arduino
+Run the Python Script
+
+# Communication Protocol
+
+Raspberry Pi sends movement commands (F, B, L, R, S) via serial
+
+Arduino reads commands and controls motors accordingly
+
+Arduino sends sensor data back to Raspberry Pi
+
+# Future Improvements
+
+Implement obstacle avoidance
+
+Integrate a camera for visual navigation
+
+Develop a mobile app for remote control
+
+# License
+
+This project is open-source and available under the MIT License.
+
+# Contributors
+
+Dan Chen (@dc8156046)
