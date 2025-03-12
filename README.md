@@ -68,6 +68,14 @@ Integrate a camera for visual navigation
 
 Develop a mobile app for remote control
 
+# Resources
+
+https://robofoundry.medium.com/programming-arduino-from-raspberry-pi-remotely-dc71cf17d84e
+
+https://www.youtube.com/watch?v=mfIacE-SPvg
+
+https://www.youtube.com/watch?v=jU_b8WBTUew
+
 # License
 
 This project is open-source and available under the MIT License.
