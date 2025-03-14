@@ -3,11 +3,11 @@
 
 Overview
 
-This repository contains the code and documentation for an autonomous car project using Raspberry Pi and Arduino. The project focuses on serial communication between Raspberry Pi and Arduino to control the car's movement and sensors.
+This repository contains the code and documentation for an autonomous car project using Raspberry Pi 5 and Elegoo Smart Robot Car V4.0 with camera. The project focuses on serial communication between Raspberry Pi and Arduino to control the car's movement and sensors. Using an USB cable to connect those 2 devices (Raspberry Pi and Arduino).
 
 # Features
 
-Serial communication between Raspberry Pi and Arduino
+Serial communication between Raspberry Pi 5 and Arduino
 
 Motor control using Arduino
 
@@ -43,15 +43,31 @@ pyserial library for serial communication
 
 # Installation
 
-1. Clone the Repository
-2. Install Dependencies
-3. Upload Arduino Code
+# 1. Clone the Repository
+
+git clone https://github.com/dc8156046/pi-arduino-autocar.git
+
+# 2. Install Dependencies
+
+pip install pyserial
+
+# 3. Upload Arduino Code
+
    Open arduino_code.ino in Arduino IDE
 
    Select the correct board and port
 
    Upload the code to the Arduino
-Run the Python Script
+   
+   Run the Python Script on Raspberry pi.
+
+# Activate the Python environment
+
+source venv/bin/activate
+
+# run 
+
+python3 car_control_on_raspberrypi_1.py
 
 # Communication Protocol
 
@@ -76,6 +92,8 @@ https://robofoundry.medium.com/programming-arduino-from-raspberry-pi-remotely-dc
 https://www.youtube.com/watch?v=mfIacE-SPvg
 
 https://www.youtube.com/watch?v=jU_b8WBTUew
+
+https://roboticsbackend.com/raspberry-pi-arduino-serial-communication/
 
 # License
 
