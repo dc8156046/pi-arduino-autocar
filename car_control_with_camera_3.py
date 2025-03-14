@@ -46,7 +46,27 @@ try:
     ser.reset_input_buffer()
     print(f"Connected to Arduino on {arduino_port}")
 
-    cap = cv2.VideoCapture(0)  # 打开摄像头
+    for i in range(5):  # Try indexes 0 to 4
+        cap = cv2.VideoCapture(i)
+        if cap.isOpened():
+            print(f"Camera detected at index {i}")
+            break
+        cap.release()
+
+    if not cap.isOpened():
+        print("No camera found")
+        exit()
+
+    ret, frame = cap.read()
+    if not ret:
+        print("Failed to capture image")
+    else:
+        cv2.imshow("Camera Test", frame)
+        cv2.waitKey(0)
+
+    cap.release()
+    cv2.destroyAllWindows()
+    exit()
 
     while True:
         ret, frame = cap.read()
