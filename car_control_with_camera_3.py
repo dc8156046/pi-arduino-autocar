@@ -7,6 +7,7 @@ import subprocess
 import numpy as np
 import sys
 import select
+import os  # Add this import for os.environ
 
 def find_arduino():
     """Automatically finds the Arduino port."""
@@ -57,6 +58,10 @@ def input_available():
     """Check if input is available without blocking."""
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
+# Disable GUI functionality
+os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
 # Connect to Arduino
 arduino_port = find_arduino()
 if not arduino_port:
@@ -73,10 +78,6 @@ try:
     
     # Set OpenCV's useOptimized flag
     cv2.setUseOptimized(True)
-    
-    # Disable GUI functionality
-    os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
-    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
     
     while True:
         # Check for quit command
