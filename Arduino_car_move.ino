@@ -5,14 +5,14 @@
 #define STBY 3  // Standby pin
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(9600); // The port same as Python code
     pinMode(PWMA, OUTPUT);
     pinMode(PWMB, OUTPUT);
     pinMode(AIN, OUTPUT);
     pinMode(BIN, OUTPUT);
     pinMode(STBY, OUTPUT);
     digitalWrite(STBY, HIGH);  // Enable motors
-    Serial.println("Arduino Ready");
+    Serial.println("Arduino Ready"); // send feedback to python code on raspberry pi 
 }
 
 void moveForward(int speed) {
@@ -20,7 +20,7 @@ void moveForward(int speed) {
     analogWrite(PWMB, speed);
     digitalWrite(AIN, HIGH);
     digitalWrite(BIN, HIGH);
-    Serial.println("Moving Forward");  // Send feedback
+    Serial.println("Moving Forward");  // Send feedback to raspberry pi 
 }
 
 void moveBackward(int speed) {
@@ -28,7 +28,7 @@ void moveBackward(int speed) {
     analogWrite(PWMB, speed);
     digitalWrite(AIN, LOW);
     digitalWrite(BIN, LOW);
-    Serial.println("Moving Backward");
+    Serial.println("Moving Backward"); // send feedback to python code
 }
 
 void turnLeft(int speed) {
@@ -36,7 +36,7 @@ void turnLeft(int speed) {
     analogWrite(PWMB, speed);
     digitalWrite(AIN, HIGH);
     digitalWrite(BIN, HIGH);
-    Serial.println("Turning Left");
+    Serial.println("Turning Left"); // send feedback to python code (raspberry pi )
 }
 
 void turnRight(int speed) {
@@ -44,23 +44,23 @@ void turnRight(int speed) {
     analogWrite(PWMB, speed / 2);
     digitalWrite(AIN, HIGH);
     digitalWrite(BIN, HIGH);
-    Serial.println("Turning Right");
+    Serial.println("Turning Right"); // send feedback to python code(raspberry pi)
 }
 
 void stopCar() {
     digitalWrite(PWMA, LOW);
     digitalWrite(PWMB, LOW);
-    Serial.println("Car Stopped");
+    Serial.println("Car Stopped"); // send feedback to raspberry pi 
 }
 
 void loop() {
     if (Serial.available()>0) {
-        String command = Serial.readStringUntil('\n');  // Read until newline
+        String command = Serial.readStringUntil('\n');  // Read from raspberry pi command
         command.trim();  // Remove any extra whitespace
         
         if (command.length() > 0) {
             Serial.print("Received: ");
-            Serial.println(command);
+            Serial.println(command); // send feedback to raspberry pi
         
             if (command == "w") moveForward(150);
             else if (command == "s") moveBackward(150);
