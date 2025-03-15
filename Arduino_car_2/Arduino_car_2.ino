@@ -81,12 +81,12 @@ void loop() {
             Serial.print("Received: ");
             Serial.println(command); // print received command to serial monitor for debugging
             
-            if (command == "w") moveForward(150);
-            else if (command == "s") moveBackward(150);
-            else if (command == "a") turnLeft(150);
-            else if (command == "d") turnRight(150);
-            else if (command == "x") stopCar();
-            else if (command == "distance") {
+            if (command.equals("w") || command.equals("follow")) moveForward(150);
+            else if (command.equals("s")) moveBackward(150);
+            else if (command.equals("a")) turnLeft(150);
+            else if (command.equals("d")) turnRight(150);
+            else if (command.equals("x")) stopCar();
+            else if (command.equals("distance")) {
                 long distance = getDistance();
                 Serial.print("Distance: ");
                 Serial.println(distance);
