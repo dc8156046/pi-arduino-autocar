@@ -44,15 +44,89 @@ def capture_image():
         return None
 
 def recognize_text(image):
-    """Processes the image and extracts text using Tesseract OCR."""
+    """改进的图像处理与文本识别函数，提供更好的OCR效果"""
+    # 将图像转换为灰度
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
     
-    # Save the processed image for debugging
-    cv2.imwrite("processed.jpg", thresh)
+    # 应用自适应阈值处理，这比简单的二值化更适合处理不均匀照明
+    thresh = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+        cv2.THRESH_BINARY, 11, 2
+    )
     
-    text = pytesseract.image_to_string(thresh, config='--psm 6').strip().upper()
+    # 应用形态学操作改善文本连接性
+    kernel = np.ones((1, 1), np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    
+    # 应用高斯模糊降噪，但保持文本清晰
+    blur = cv2.GaussianBlur(opening, (1, 1), 0)
+    
+    # 应用锐化滤波器增强文本边缘
+    kernel_sharpening = np.array([[-1,-1,-1], 
+                                  [-1, 9,-1],
+                                  [-1,-1,-1]])
+    sharpened = cv2.filter2D(blur, -1, kernel_sharpening)
+    
+    # 保存处理后的图像用于调试
+    cv2.imwrite("processed_improved.jpg", sharpened)
+    
+    # 使用Tesseract的更多选项提高识别率
+    # --oem 3: 使用LSTM OCR引擎
+    # --psm 6: 假设为单一文本块
+    # -l eng: 使用英语字典
+    # -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ: 只允许识别大写字母
+    custom_config = r'--oem 3 --psm 6 -l eng -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    text = pytesseract.image_to_string(sharpened, config=custom_config).strip().upper()
+    
     return text
+
+def process_and_recognize(image, debug=True):
+    """使用多种处理方法尝试识别文本，返回最可能的结果"""
+    # 方法1: 基本处理
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    text1 = pytesseract.image_to_string(binary, config='--psm 6').strip().upper()
+    
+    # 方法2: 自适应阈值
+    adaptive = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                   cv2.THRESH_BINARY, 11, 2)
+    text2 = pytesseract.image_to_string(adaptive, config='--psm 6').strip().upper()
+    
+    # 方法3: 锐化
+    kernel_sharpening = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+    sharpened = cv2.filter2D(gray, -1, kernel_sharpening)
+    _, binary_sharp = cv2.threshold(sharpened, 150, 255, cv2.THRESH_BINARY)
+    text3 = pytesseract.image_to_string(binary_sharp, config='--psm 6').strip().upper()
+    
+    # 方法4: OTSU阈值
+    _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    text4 = pytesseract.image_to_string(otsu, config='--psm 6').strip().upper()
+    
+    if debug:
+        # 保存所有处理后的图像用于比较
+        cv2.imwrite("debug_binary.jpg", binary)
+        cv2.imwrite("debug_adaptive.jpg", adaptive)
+        cv2.imwrite("debug_sharpened.jpg", binary_sharp)
+        cv2.imwrite("debug_otsu.jpg", otsu)
+        
+        print(f"Method 1 (Binary): '{text1}'")
+        print(f"Method 2 (Adaptive): '{text2}'")
+        print(f"Method 3 (Sharpened): '{text3}'")
+        print(f"Method 4 (OTSU): '{text4}'")
+    
+    # 简单的"投票"系统 - 如果同一文本被多个方法识别，优先选择
+    texts = [text1, text2, text3, text4]
+    for text in texts:
+        if text and texts.count(text) > 1:
+            return text
+    
+    # 如果没有一致的结果，优先返回非空结果
+    for text in texts:
+        if text:
+            return text
+    
+    return ""
+
 
 def input_available():
     """Check if input is available without blocking."""
@@ -99,7 +173,7 @@ try:
             cv2.imwrite(debug_filename, image)
             print(f"Saved debug image: {debug_filename}")
         
-        text = recognize_text(image)
+        text = process_and_recognize(image)
         if text:
             print(f"Recognized: {text}")
             
