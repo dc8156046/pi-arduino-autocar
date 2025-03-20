@@ -40,36 +40,62 @@ def send_command(command):
 
 # recognize text from image
 def recognize_text(frame):
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # convert to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Increase contrast
+    gray = cv2.equalizeHist(gray)
+
+    # Apply Gaussian blur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Adaptive thresholding for better segmentation
     processed = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+        blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2
     )
 
+    # Morphological operations to remove noise and strengthen text
+    kernel = np.ones((3, 3), np.uint8)
+    processed = cv2.morphologyEx(processed, cv2.MORPH_CLOSE, kernel)
+
     # Save processed image occasionally for debugging
-    if int(time.time()) % 30 < 1:  # Save roughly every 30 seconds
+    if int(time.time()) % 30 < 1:
         cv2.imwrite(f"processed_text_{int(time.time())}.jpg", processed)
 
-    text = pytesseract.image_to_string(processed, config="--psm 6").strip().upper()
+    # Use OCR with a whitelist of valid characters
+    custom_config = r"--psm 6 -c tessedit_char_whitelist=WASDXFORWARDBACKLEFTRIGHTSTOP"
+    text = pytesseract.image_to_string(processed, config=custom_config).strip().upper()
+
     return text
 
 
 # use YOLOv8 to detect person
-def detect_person(frame, model):
-    results = model(frame)  # use YOLOv8 to detect objects
+def detect_person(frame, model, min_size=100, confidence_threshold=0.5):
+    results = model(frame)  # Use YOLOv8 to detect objects
     person_detected = False
     person_box = None
 
     for result in results:
         for box in result.boxes:
-            cls = int(box.cls[0])  # get class ID
-            if cls == 0:  # person class
+            cls = int(box.cls[0])  # Get class ID
+            conf = float(box.conf[0])  # Confidence score
+            x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())  # Get box coordinates
+
+            # Calculate width and height of detected person
+            width, height = x2 - x1, y2 - y1
+
+            # Apply confidence and size filters
+            if (
+                cls == 0
+                and conf > confidence_threshold
+                and width > min_size
+                and height > min_size
+            ):
                 person_detected = True
-                person_box = box.xyxy[0].tolist()  # get box coordinates
+                person_box = (x1, y1, x2, y2)
 
                 # Save debug image with bounding box occasionally
-                if int(time.time()) % 30 < 1:  # Save roughly every 30 seconds
+                if int(time.time()) % 30 < 1:
                     debug_frame = frame.copy()
-                    x1, y1, x2, y2 = map(int, person_box)
                     cv2.rectangle(debug_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                     cv2.imwrite(f"person_detected_{int(time.time())}.jpg", debug_frame)
 
